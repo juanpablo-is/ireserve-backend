@@ -5,5 +5,6 @@ const router = express.Router();
 const menuController = require('../controllers/menu');
 
 router.get('/menu', menuController.getMenu);
+router.post('/menu', menuController.createMenu);
 
 module.exports = router;
