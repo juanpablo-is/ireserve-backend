@@ -22,7 +22,7 @@ const createRestaurant = (req, res) => {
                     db.collection('restaurant')
                         .add(restaurant)
                         .then((data) => {
-                            res.status(201).json(data);
+                            res.status(201).json({ idRestaurant: data.id });
                         }).catch(e => {
                             res.status(501).json({ message: e.message });
                         });

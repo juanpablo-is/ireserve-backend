@@ -1,23 +1,21 @@
 const db = require("../utils/database");
 
 const getMenu = async (req, res) => {
-    const idUser = req.query.idUser;
-    const idRestaurant = req.query.idUser;
+    const idRestaurant = req.query.idRestaurant;
 
-    if (!idRestaurant || !idUser) {
+    if (!idRestaurant) {
         return res.status(400).json({ response: "Petición no valida." });
     }
 
     try {
         const snapshot = await db.collection('menu')
-            .where('idUser', '==', idUser)
             .where('idRestaurant', '==', idRestaurant)
             .get();
 
         if (snapshot.docs.length > 0) {
             res.status(201).json(snapshot.docs[0].data());
         } else {
-            res.status(400).json({ response: 'empty' });
+            res.status(200).json({ response: 'empty' });
         }
     } catch (error) {
         res.status(500).json({ response: error.message });
@@ -28,17 +26,16 @@ const createMenu = async (req, res) => {
     const menu = req.body;
     if (menu) {
         try {
-            if (!menu.idRestaurant || !menu.idUser) {
+            if (!menu.idRestaurant) {
                 return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
             }
 
             const restaurant = await db.collection('restaurant')
-                .where('idUser', '==', menu.idUser)
-                .where('idRestaurant', '==', menu.idRestaurant)
+                .doc(menu.idRestaurant)
                 .get();
 
-            if (!restaurant.docs.length) {
-                return res.status(400).json({ response: `No se ha encontrado un restaurante con el ID '${menu.idRestaurant}'.` });
+            if (!restaurant.data()) {
+                return res.status(400).json({ response: 'No se ha encontrado un restaurante registrado.' });
             }
 
             const auxMenu = await db.collection('menu')
@@ -46,7 +43,7 @@ const createMenu = async (req, res) => {
                 .get();
 
             if (auxMenu.docs.length > 0) {
-                res.status(500).json({ response: `Ya hay un menú creado para el usuario '${menu.idRestaurant}'.` });
+                res.status(500).json({ response: `Ya hay un menú creado para este usuario.` });
             } else {
                 await db.collection('menu')
                     .add(menu);
