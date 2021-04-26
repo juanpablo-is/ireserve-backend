@@ -9,7 +9,7 @@ const restaurantController = require('../controllers/restaurant');
  * Rutas REST para menu.
  */
 router.get('/menu', menuController.getMenu);
-router.post('/menu', menuController.createMenu);
+router.post('/menu', menuController.getMenu);
 
 /**
  * Rutas REST para restaurante.
