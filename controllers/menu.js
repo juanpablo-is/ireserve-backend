@@ -24,16 +24,14 @@ const getMenu = async (req, res) => {
 
 const createMenu = async (req, res) => {
     const menu = req.body;
-    console.log(menu)
     if (menu) {
         try {
             if (!menu.idRestaurant) {
                 return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
             }
-            const restaurant = await db.collection('restaurant').doc(menu.idRestaurant)
-                console.log(restaurant);
+            const restaurant = await db.collection('restaurant').doc(menu.idRestaurant).get();
 
-            if (!restaurant) {
+            if (!restaurant._fieldsProto) {
                 return res.status(400).json({ response: 'No se ha encontrado un restaurante registrado.' });
             }
 
@@ -42,8 +40,8 @@ const createMenu = async (req, res) => {
                 .get();
             if (auxMenu.docs.length > 0) {
                 await db.collection('menu')
-                .doc(auxMenu.docs[0].id)
-                .set(menu);
+                    .doc(auxMenu.docs[0].id)
+                    .set(menu);
                 res.status(201).json({ response: `Menu actualizado.` });
             } else {
                 await db.collection('menu')
