@@ -15,10 +15,11 @@ const createRestaurant = (req, res) => {
     const restaurant = req.body;
     if (restaurant.idUser) {
         db.collection('users')
-            .where('email', '==', restaurant.idUser)
+            .doc(restaurant.idUser)
             .get()
-            .then(user => {
-                if (user.docs.length) {
+            .then(response => {
+                const user = response.data();
+                if (user) {
                     db.collection('restaurant')
                         .add(restaurant)
                         .then((data) => {
@@ -27,7 +28,7 @@ const createRestaurant = (req, res) => {
                             res.status(501).json({ message: e.message });
                         });
                 } else {
-                    res.status(401).json({ message: `No hay usuario con el ID '${restaurant.idUser}'` });
+                    res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
                 }
             }).catch(e => {
                 res.status(501).json({ message: e.message });

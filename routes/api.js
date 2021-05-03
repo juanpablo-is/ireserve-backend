@@ -4,6 +4,7 @@ const router = express.Router();
 // Controladores
 const menuController = require('../controllers/menu');
 const restaurantController = require('../controllers/restaurant');
+const userController = require('../controllers/user');
 
 /**
  * Rutas REST para menu.
@@ -16,5 +17,10 @@ router.post('/menu', menuController.createMenu);
  */
 router.get('/restaurant', restaurantController.getRestaurants);
 router.post('/restaurant', restaurantController.createRestaurant);
+
+/**
+ * Rutas REST para user.
+ */
+router.get('/user', userController.getUser);
 
 module.exports = router;
