@@ -5,6 +5,7 @@ const router = express.Router();
 const menuController = require('../controllers/menu');
 const restaurantController = require('../controllers/restaurant');
 const userController = require('../controllers/user');
+const utilsController = require('../controllers/utils');
 
 /**
  * Rutas REST para menu.
@@ -22,5 +23,11 @@ router.post('/restaurant', restaurantController.createRestaurant);
  * Rutas REST para user.
  */
 router.get('/user', userController.getUser);
+
+/**
+ * Rutas REST para funciones de utilidad.
+ */
+router.get('/ads', utilsController.getAds);
+router.post('/ads', utilsController.createAds);
 
 module.exports = router;
