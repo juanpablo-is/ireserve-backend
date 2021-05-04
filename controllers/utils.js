@@ -17,23 +17,33 @@ const getAds = (req, res) => {
 
 const createAds = (req, res) => {
     const ads = req.body;
-    if (!ads.name || !ads.desc || !ads.url) {
+    if (!ads.name || !ads.desc || !ads.url || !ads.idRestaurant) {
         return res.status(400).json({ response: "Petición no valida." });
     }
 
     ads.createdAt = Date.now();
 
-    db.collection("ads")
-        .add(ads)
+    db.collection("restaurant")
+        .doc(ads.idRestaurant)
+        .get()
         .then(data => {
-            if (data.id) {
-                return res.json({ message: "Anuncio guardado exitosamente" });
+            if (data.data()) {
+                db.collection("ads")
+                    .add(ads)
+                    .then(data => {
+                        if (data.id) {
+                            return res.json({ message: "Anuncio guardado exitosamente" });
+                        }
+                        return res.status(400).json({ message: "No se ha podido guardar, intente nuevamente." });
+                    });
+            } else {
+                return res.status(400).json({ message: "No existe un restaurante relacionado al anuncio." });
             }
-            return res.status(400).json({ message: "No se ha podido guardar, intente nuevamente." });
         })
         .catch(error => {
             res.status(500).json({ response: error.message });
         });
+
 }
 
 module.exports = {
