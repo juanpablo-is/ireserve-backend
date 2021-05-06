@@ -5,6 +5,7 @@ const router = express.Router();
 const menuController = require('../controllers/menu');
 const restaurantController = require('../controllers/restaurant');
 const userController = require('../controllers/user');
+const reservationController = require('../controllers/reservation');
 const utilsController = require('../controllers/utils');
 
 /**
@@ -17,7 +18,14 @@ router.post('/menu', menuController.createMenu);
  * Rutas REST para restaurante.
  */
 router.get('/restaurant', restaurantController.getRestaurants);
+router.get('/restaurant/:id', restaurantController.getRestaurant);
 router.post('/restaurant', restaurantController.createRestaurant);
+
+/**
+ * Rutas REST para menu.
+ */
+router.get('/reservation', reservationController.getReservation);
+router.post('/reservation', reservationController.createReservation);
 
 /**
  * Rutas REST para user.
