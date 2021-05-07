@@ -19,7 +19,7 @@ const createReservation = (req, res) => {
         .then(response => {
             const data = response.id;
             if (data) {
-                return res.json(data);
+                return res.status(201).json(data);
             }
             res.status(500).json({ response: "Error al crear la reserva, intente nuevamente." });
         })
