@@ -1,5 +1,8 @@
 const db = require('../utils/database');
 
+/**
+ * Lista las reservaciones de acuerdo al usuario.
+ */
 const getReservations = (req, res) => {
     const { id: idUser } = req.params;
     if (!idUser) {
@@ -8,27 +11,46 @@ const getReservations = (req, res) => {
 
     db.collection("reservation")
         .where("idUser", "==", idUser)
+        .orderBy("dateStart", "desc")
         .get()
         .then(response => {
             const pending = [];
             const active = [];
             const complete = [];
 
-            response.docs.forEach(doc => {
+            Promise.all(response.docs.map(doc => {
                 const data = doc.data();
+                const { idRestaurant } = data;
 
-                if (!data.state) {
-                    pending.push(data);
-                } else {
-                    const timestamp = Date.now();
-                    if (timestamp > data.timestamp) {
-                        complete.push(data);
-                    } else {
-                        active.push(data);
-                    }
-                }
-            });
-            res.json({ pending, active, complete });
+                return db.collection("restaurant")
+                    .doc(idRestaurant)
+                    .get()
+                    .then(responseRestaurant => {
+                        const restaurant = responseRestaurant.data();
+                        if (restaurant) {
+                            data.restaurant = restaurant.name;
+                            data.address = restaurant.address;
+                            data.dateStart = new Date(data.dateStart).toLocaleString();
+                            data.date = new Date(data.timestamp).toLocaleString();
+
+                            const timestamp = Date.now();
+                            if (!data.state) {
+                                if (timestamp > data.timestamp) {
+                                    pending.push(data);
+                                }
+                            } else {
+                                if (timestamp > data.timestamp) {
+                                    complete.unshift(data);
+                                } else {
+                                    active.push(data);
+                                }
+                            }
+                        }
+                    });
+            }))
+                .then(() => {
+                    res.json({ pending, active, complete });
+                });
         })
         .catch(error => {
             res.status(500).json({ response: error.message });
@@ -46,7 +68,7 @@ const createReservation = (req, res) => {
     }
 
     db.collection("reservation")
-        .add(reservation)
+        .add({ ...reservation, dateStart: Date.now() })
         .then(response => {
             const data = response.id;
             if (data) {
