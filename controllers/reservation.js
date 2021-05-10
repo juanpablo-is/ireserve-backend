@@ -1,7 +1,61 @@
 const db = require('../utils/database');
 
-const getReservation = (req, res) => {
+/**
+ * Lista las reservaciones de acuerdo al usuario.
+ */
+const getReservations = (req, res) => {
+    const { id: idUser } = req.params;
+    if (!idUser) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
 
+    db.collection("reservation")
+        .where("idUser", "==", idUser)
+        .orderBy("timestamp", "asc")
+        .get()
+        .then(response => {
+            const pending = [];
+            const active = [];
+            const complete = [];
+
+            Promise.all(response.docs.map(doc => {
+                const data = doc.data();
+                data.id = doc.id;
+                const { idRestaurant } = data;
+
+                return db.collection("restaurant")
+                    .doc(idRestaurant)
+                    .get()
+                    .then(responseRestaurant => {
+                        const restaurant = responseRestaurant.data();
+                        if (restaurant) {
+                            data.restaurant = restaurant.name;
+                            data.address = restaurant.address;
+                            data.createdAt = new Date(data.createdAt).toLocaleString();
+                            data.date = new Date(data.timestamp).toLocaleString();
+
+                            const timestamp = Date.now();
+                            if (!data.state) {
+                                if (timestamp < data.timestamp) {
+                                    pending.push(data);
+                                }
+                            } else {
+                                if (timestamp > data.timestamp) {
+                                    complete.unshift(data);
+                                } else {
+                                    active.push(data);
+                                }
+                            }
+                        }
+                    });
+            }))
+                .then(() => {
+                    res.json({ pending, active, complete });
+                });
+        })
+        .catch(error => {
+            res.status(500).json({ response: error.message });
+        });
 }
 
 /**
@@ -15,7 +69,7 @@ const createReservation = (req, res) => {
     }
 
     db.collection("reservation")
-        .add(reservation)
+        .add({ ...reservation, createdAt: Date.now() })
         .then(response => {
             const data = response.id;
             if (data) {
@@ -28,7 +82,28 @@ const createReservation = (req, res) => {
         });
 }
 
+/**
+ * Elimina una reservación de la db.
+ */
+const deleteReservation = (req, res) => {
+    const { id: idUser } = req.params;
+    if (!idUser) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection("reservation")
+        .doc(idUser)
+        .delete()
+        .then(data => {
+            res.json(data);
+        })
+        .catch(error => {
+            res.status(500).json({ response: error.message });
+        });
+}
+
 module.exports = {
-    getReservation,
-    createReservation
+    getReservations,
+    createReservation,
+    deleteReservation
 }
