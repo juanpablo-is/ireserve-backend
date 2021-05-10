@@ -11,7 +11,7 @@ const getReservations = (req, res) => {
 
     db.collection("reservation")
         .where("idUser", "==", idUser)
-        .orderBy("dateStart", "desc")
+        .orderBy("timestamp", "asc")
         .get()
         .then(response => {
             const pending = [];
@@ -20,6 +20,7 @@ const getReservations = (req, res) => {
 
             Promise.all(response.docs.map(doc => {
                 const data = doc.data();
+                data.id = doc.id;
                 const { idRestaurant } = data;
 
                 return db.collection("restaurant")
@@ -30,12 +31,12 @@ const getReservations = (req, res) => {
                         if (restaurant) {
                             data.restaurant = restaurant.name;
                             data.address = restaurant.address;
-                            data.dateStart = new Date(data.dateStart).toLocaleString();
+                            data.createdAt = new Date(data.createdAt).toLocaleString();
                             data.date = new Date(data.timestamp).toLocaleString();
 
                             const timestamp = Date.now();
                             if (!data.state) {
-                                if (timestamp > data.timestamp) {
+                                if (timestamp < data.timestamp) {
                                     pending.push(data);
                                 }
                             } else {
@@ -68,7 +69,7 @@ const createReservation = (req, res) => {
     }
 
     db.collection("reservation")
-        .add({ ...reservation, dateStart: Date.now() })
+        .add({ ...reservation, createdAt: Date.now() })
         .then(response => {
             const data = response.id;
             if (data) {
@@ -81,7 +82,28 @@ const createReservation = (req, res) => {
         });
 }
 
+/**
+ * Elimina una reservación de la db.
+ */
+const deleteReservation = (req, res) => {
+    const { id: idUser } = req.params;
+    if (!idUser) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection("reservation")
+        .doc(idUser)
+        .delete()
+        .then(data => {
+            res.json(data);
+        })
+        .catch(error => {
+            res.status(500).json({ response: error.message });
+        });
+}
+
 module.exports = {
     getReservations,
-    createReservation
+    createReservation,
+    deleteReservation
 }
