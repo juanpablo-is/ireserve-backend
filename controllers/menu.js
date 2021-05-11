@@ -1,25 +1,22 @@
 const db = require("../utils/database");
 
-const getMenu = async (req, res) => {
+const getMenu = (req, res) => {
     const idRestaurant = req.query.idRestaurant;
 
     if (!idRestaurant) {
         return res.status(400).json({ response: "Petición no valida." });
     }
 
-    try {
-        const snapshot = await db.collection('menu')
-            .where('idRestaurant', '==', idRestaurant)
-            .get();
-
-        if (snapshot.docs.length > 0) {
-            res.status(201).json(snapshot.docs[0].data());
-        } else {
-            res.status(200).json({ response: 'empty' });
-        }
-    } catch (error) {
-        res.status(500).json({ response: error.message });
-    }
+    db.collection('menu')
+        .where('idRestaurant', '==', idRestaurant)
+        .get()
+        .then(response => {
+            const docs = response.docs[0].data();
+            res.json(docs);
+        })
+        .catch(error => {
+            res.status(500).json({ response: error.message });
+        });
 };
 
 const createMenu = async (req, res) => {
