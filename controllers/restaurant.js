@@ -1,11 +1,24 @@
 const db = require("../utils/database");
 
-const getRestaurants = async (req, res) => {
-    const snapshot = await db.collection('restaurant').get();
-    snapshot.forEach((doc) => {
-        console.log(doc.id, '=>', doc.data());
-    });
-    res.json(snapshot);
+const getRestaurants = (req, res) => {
+    db.collection('restaurant')
+        .get()
+        .then(data => {
+            const docs = data.docs.map(doc => {
+                const restaurant = doc.data();
+                restaurant.id = doc.id;
+
+                const { stars, countStars } = calculateStars(restaurant.stars);
+                restaurant.stars = stars;
+                restaurant.countStars = countStars;
+                restaurant.diff = (Math.random() * (120 - 2) + 2).toFixed(2) + 'm';
+                return restaurant;
+            });
+            res.json(docs);
+        })
+        .catch(error => {
+            res.status(501).json({ message: error.message });
+        });
 };
 
 /**

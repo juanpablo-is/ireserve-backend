@@ -11,8 +11,11 @@ const getMenu = (req, res) => {
         .where('idRestaurant', '==', idRestaurant)
         .get()
         .then(response => {
-            const docs = response.docs[0].data();
-            res.json(docs);
+            if (response.docs.length == 1) {
+                const docs = response.docs[0].data();
+                return res.json(docs);
+            }
+            return res.json({});
         })
         .catch(error => {
             res.status(500).json({ response: error.message });
