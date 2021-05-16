@@ -4,15 +4,18 @@ const getRestaurants = (req, res) => {
     db.collection('restaurant')
         .get()
         .then(data => {
-            const docs = data.docs.map(doc => {
+            const docs = [];
+            data.docs.forEach(doc => {
                 const restaurant = doc.data();
                 restaurant.id = doc.id;
+                restaurant.open = calculateOpenRestaurant(restaurant.dateStart, restaurant.dateEnd);
 
                 const { stars, countStars } = calculateStars(restaurant.stars);
                 restaurant.stars = stars;
                 restaurant.countStars = countStars;
                 restaurant.diff = (Math.random() * (120 - 2) + 2).toFixed(2) + 'm';
-                return restaurant;
+
+                restaurant.open ? docs.unshift(restaurant) : docs.push(restaurant);
             });
             res.json(docs);
         })
@@ -63,6 +66,14 @@ const createRestaurant = (req, res) => {
             .then(response => {
                 const user = response.data();
                 if (user) {
+                    restaurant.stars = {
+                        star_1: 0,
+                        star_2: 0,
+                        star_3: 0,
+                        star_4: 0,
+                        star_5: 0,
+                    };
+
                     db.collection('restaurant')
                         .add(restaurant)
                         .then((data) => {
@@ -91,13 +102,19 @@ module.exports = {
  * Calcula si el restaurante está abierto o cerrado de acuerdo a la fecha.
  */
 const calculateOpenRestaurant = (start, end) => {
-    const hour = new Date().getHours();
-    const minute = new Date().getMinutes();
+    const dateNow = new Date();
 
     const timeStart = start.split(':');
     const timeEnd = end.split(':');
 
-    if ((hour >= timeStart[0] && minute >= timeStart[1]) && (hour <= timeEnd[0] && minute < timeEnd[1])) {
+    const dateStart = new Date();
+    const dateEnd = new Date();
+    dateStart.setHours(timeStart[0]);
+    dateStart.setMinutes(timeStart[1]);
+    dateEnd.setHours(timeEnd[0]);
+    dateEnd.setMinutes(timeEnd[1]);
+
+    if ((dateNow.getTime() >= dateStart.getTime()) && (dateNow.getTime() <= dateEnd.getTime())) {
         return true;
     }
     return false;
