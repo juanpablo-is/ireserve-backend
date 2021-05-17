@@ -3,9 +3,11 @@ const firebaseAdmin = require('firebase-admin');
 const geofirestore = require('geofirestore');
 
 const getRestaurants = (req, res) => {
+    const { lat, lng } = req.query;
+
     const GeoFirestore = geofirestore.initializeApp(db);
     const geocollection = GeoFirestore.collection('restaurants');
-    const query = geocollection.near({ center: new firebaseAdmin.firestore.GeoPoint(4.629605998403462, -74.06571953853415), radius: 1 });
+    const query = geocollection.near({ center: new firebaseAdmin.firestore.GeoPoint(Number(lat), Number(lng)), radius: 2 });
 
     query.get()
         .then((data) => {
