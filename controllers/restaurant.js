@@ -101,21 +101,36 @@ const createRestaurant = (req, res) => {
     }
 };
 
-module.exports = {
-    getRestaurants,
-    getRestaurant,
-    createRestaurant
-};
+/**
+ * Este método actualiza un registro en Firebase de un restaurante.
+ */
+const updateRestaurant = (req, res) => {
+    const newRestaurant = req.body;
+    if (!newRestaurant) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection('restaurant')
+        .doc(newRestaurant.idRestaurant)
+        .set(newRestaurant)
+        .then(response => {
+            if (response) {
+                res.status(200).send({ response: "Usuario actualizado" })
+            } else {
+                res.status(401).send({ response: "Error en el proceso" })
+            }
+        }).catch(e => {
+            res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
+        });
+}
 
 /**
  * Calcula si el restaurante está abierto o cerrado de acuerdo a la fecha.
  */
 const calculateOpenRestaurant = (start, end) => {
     const dateNow = new Date();
-
     const timeStart = start.split(':');
     const timeEnd = end.split(':');
-
     const dateStart = new Date();
     const dateEnd = new Date();
     dateStart.setHours(timeStart[0]);
@@ -141,3 +156,10 @@ const calculateStars = (stars) => {
 
     return { stars: avgStars.toFixed(2), countStars: count }
 }
+
+module.exports = {
+    getRestaurants,
+    getRestaurant,
+    createRestaurant,
+    updateRestaurant
+};
