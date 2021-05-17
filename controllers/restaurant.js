@@ -29,6 +29,7 @@ const getRestaurants = (req, res) => {
  */
 const getRestaurant = (req, res) => {
     const { id: idRestaurant } = req.params;
+    console.log(req.params)
     if (!idRestaurant) {
         return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
     }
@@ -38,7 +39,7 @@ const getRestaurant = (req, res) => {
         .get()
         .then(response => {
             const data = response.data();
-            if (data) {
+                     if (data) {
                 data.open = calculateOpenRestaurant(data.dateStart, data.dateEnd);
 
                 const { stars, countStars } = calculateStars(data.stars);
@@ -47,7 +48,7 @@ const getRestaurant = (req, res) => {
 
                 return res.json(data);
             }
-            return res.json({});
+            return res.json({data});
         })
         .catch(error => {
             res.status(501).json({ message: error.message });
@@ -92,21 +93,30 @@ const createRestaurant = (req, res) => {
     }
 };
 
-module.exports = {
-    getRestaurants,
-    getRestaurant,
-    createRestaurant
-};
+
+const updateRestaurant = (req, res)=>{
+    const newrestaurant = req.body;
+    db.collection('restaurant')
+    .doc(newrestaurant.idRestaurant)
+    .set(newrestaurant).then( response => {
+        const rest = response
+        if(rest){
+            res.status(200).send({response:"usuario actualizado"})    
+        }else{
+            res.status(401).send({response:"error en el proceso"})
+        }
+    }).catch(e =>{
+        res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
+    });
+}
 
 /**
  * Calcula si el restaurante está abierto o cerrado de acuerdo a la fecha.
  */
 const calculateOpenRestaurant = (start, end) => {
     const dateNow = new Date();
-
     const timeStart = start.split(':');
     const timeEnd = end.split(':');
-
     const dateStart = new Date();
     const dateEnd = new Date();
     dateStart.setHours(timeStart[0]);
@@ -132,3 +142,10 @@ const calculateStars = (stars) => {
 
     return { stars: avgStars.toFixed(2), countStars: count }
 }
+
+module.exports = {
+    getRestaurants,
+    getRestaurant,
+    createRestaurant,
+    updateRestaurant
+};
