@@ -7,7 +7,6 @@ const restaurantController = require('../controllers/restaurant');
 const userController = require('../controllers/user');
 const reservationController = require('../controllers/reservation');
 const utilsController = require('../controllers/utils');
-const credentialController = require('../controllers/credential');
 
 /**
  * Rutas REST para menu.
@@ -22,14 +21,6 @@ router.get('/restaurants', restaurantController.getRestaurants);
 router.get('/restaurant/:id', restaurantController.getRestaurant);
 router.post('/restaurant', restaurantController.createRestaurant);
 router.put('/restaurant', restaurantController.updateRestaurant);
-
-
-
-/**
- * Rutas REST para perfil cliente.
- */
- router.get('/perfil-cliente', restaurantController.getRestaurants);
- 
 
 /**
  * Rutas REST para menu.
@@ -49,10 +40,5 @@ router.put('/user', userController.updateUser)
  */
 router.get('/ads', utilsController.getAds);
 router.post('/ads', utilsController.createAds);
-
-/**
- * Rutas REST para actualización credenciales.
- */
-router.put('/sui', credentialController.updateCredentials)
 
 module.exports = router;

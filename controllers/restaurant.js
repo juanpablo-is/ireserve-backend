@@ -29,7 +29,6 @@ const getRestaurants = (req, res) => {
  */
 const getRestaurant = (req, res) => {
     const { id: idRestaurant } = req.params;
-    console.log(req.params)
     if (!idRestaurant) {
         return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
     }
@@ -39,7 +38,7 @@ const getRestaurant = (req, res) => {
         .get()
         .then(response => {
             const data = response.data();
-                     if (data) {
+            if (data) {
                 data.open = calculateOpenRestaurant(data.dateStart, data.dateEnd);
 
                 const { stars, countStars } = calculateStars(data.stars);
@@ -48,7 +47,7 @@ const getRestaurant = (req, res) => {
 
                 return res.json(data);
             }
-            return res.json({data});
+            return res.json({});
         })
         .catch(error => {
             res.status(501).json({ message: error.message });
@@ -93,21 +92,27 @@ const createRestaurant = (req, res) => {
     }
 };
 
+/**
+ * Este método actualiza un registro en Firebase de un restaurante.
+ */
+const updateRestaurant = (req, res) => {
+    const newRestaurant = req.body;
+    if (!newRestaurant) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
 
-const updateRestaurant = (req, res)=>{
-    const newrestaurant = req.body;
     db.collection('restaurant')
-    .doc(newrestaurant.idRestaurant)
-    .set(newrestaurant).then( response => {
-        const rest = response
-        if(rest){
-            res.status(200).send({response:"usuario actualizado"})    
-        }else{
-            res.status(401).send({response:"error en el proceso"})
-        }
-    }).catch(e =>{
-        res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
-    });
+        .doc(newRestaurant.idRestaurant)
+        .set(newRestaurant)
+        .then(response => {
+            if (response) {
+                res.status(200).send({ response: "Usuario actualizado" })
+            } else {
+                res.status(401).send({ response: "Error en el proceso" })
+            }
+        }).catch(e => {
+            res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
+        });
 }
 
 /**
