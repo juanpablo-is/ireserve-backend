@@ -105,19 +105,24 @@ const createRestaurant = (req, res) => {
  * Este método actualiza un registro en Firebase de un restaurante.
  */
 const updateRestaurant = (req, res) => {
+    const { id: idRestaurant } = req.params;
+    if (!idRestaurant) {
+        return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
+    }
+
     const newRestaurant = req.body;
     if (!newRestaurant) {
-        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+        return res.status(401).json({ response: "Petición no valida, revise cuerpo de la petición." });
     }
 
     db.collection('restaurant')
-        .doc(newRestaurant.idRestaurant)
-        .set(newRestaurant)
+        .doc(idRestaurant)
+        .update(newRestaurant)
         .then(response => {
             if (response) {
-                res.status(200).send({ response: "Usuario actualizado" })
+                res.status(200).send({ response: "Usuario actualizado." })
             } else {
-                res.status(401).send({ response: "Error en el proceso" })
+                res.status(401).send({ response: "Error en el proceso." })
             }
         }).catch(e => {
             res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
