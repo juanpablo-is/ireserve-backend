@@ -115,7 +115,7 @@ const updateRestaurant = (req, res) => {
         return res.status(401).json({ response: "Petición no valida, revise cuerpo de la petición." });
     }
 
-    db.collection('restaurant')
+    db.collection('restaurants')
         .doc(idRestaurant)
         .update(newRestaurant)
         .then(response => {

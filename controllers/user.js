@@ -19,7 +19,7 @@ const getUser = (req, res) => {
             delete user.password;
 
             if (user.role === "Cliente") {
-                db.collection('restaurant')
+                db.collection('restaurants')
                     .where('idUser', '==', uid)
                     .get()
                     .then(response => {

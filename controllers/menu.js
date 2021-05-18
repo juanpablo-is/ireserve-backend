@@ -29,7 +29,7 @@ const createMenu = async (req, res) => {
             if (!menu.idRestaurant) {
                 return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
             }
-            const restaurant = await db.collection('restaurant').doc(menu.idRestaurant).get();
+            const restaurant = await db.collection('restaurants').doc(menu.idRestaurant).get();
 
             if (!restaurant._fieldsProto) {
                 return res.status(400).json({ response: 'No se ha encontrado un restaurante registrado.' });
