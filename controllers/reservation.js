@@ -23,7 +23,7 @@ const getReservations = (req, res) => {
                 data.id = doc.id;
                 const { idRestaurant } = data;
 
-                return db.collection("restaurant")
+                return db.collection("restaurants")
                     .doc(idRestaurant)
                     .get()
                     .then(responseRestaurant => {

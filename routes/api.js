@@ -20,7 +20,7 @@ router.post('/menu', menuController.createMenu);
 router.get('/restaurants', restaurantController.getRestaurants);
 router.get('/restaurant/:id', restaurantController.getRestaurant);
 router.post('/restaurant', restaurantController.createRestaurant);
-router.put('/restaurant', restaurantController.updateRestaurant);
+router.put('/restaurant/:id', restaurantController.updateRestaurant);
 
 /**
  * Rutas REST para menu.
@@ -32,8 +32,8 @@ router.get('/reservations/:id', reservationController.getReservations);
 /**
  * Rutas REST para user.
  */
-router.get('/user', userController.getUser);
-router.put('/user', userController.updateUser)
+router.get('/user/:id', userController.getUser);
+router.put('/user/:id', userController.updateUser)
 
 /**
  * Rutas REST para funciones de utilidad.

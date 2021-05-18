@@ -23,7 +23,7 @@ const createAds = (req, res) => {
 
     ads.createdAt = Date.now();
 
-    db.collection("restaurant")
+    db.collection("restaurants")
         .doc(ads.idRestaurant)
         .get()
         .then(data => {

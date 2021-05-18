@@ -1,9 +1,16 @@
 const db = require("../utils/database");
+const firebaseAdmin = require('firebase-admin');
+const geofirestore = require('geofirestore');
 
 const getRestaurants = (req, res) => {
-    db.collection('restaurant')
-        .get()
-        .then(data => {
+    const { lat, lng } = req.query;
+
+    const GeoFirestore = geofirestore.initializeApp(db);
+    const geocollection = GeoFirestore.collection('restaurants');
+    const query = geocollection.near({ center: new firebaseAdmin.firestore.GeoPoint(Number(lat), Number(lng)), radius: 2 });
+
+    query.get()
+        .then((data) => {
             const docs = [];
             data.docs.forEach(doc => {
                 const restaurant = doc.data();
@@ -13,7 +20,7 @@ const getRestaurants = (req, res) => {
                 const { stars, countStars } = calculateStars(restaurant.stars);
                 restaurant.stars = stars;
                 restaurant.countStars = countStars;
-                restaurant.diff = (Math.random() * (120 - 2) + 2).toFixed(2) + 'm';
+                restaurant.distance = (doc.distance * 1000).toFixed(2);
 
                 restaurant.open ? docs.unshift(restaurant) : docs.push(restaurant);
             });
@@ -33,7 +40,7 @@ const getRestaurant = (req, res) => {
         return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
     }
 
-    db.collection('restaurant')
+    db.collection('restaurants')
         .doc(idRestaurant)
         .get()
         .then(response => {
@@ -66,6 +73,7 @@ const createRestaurant = (req, res) => {
             .then(response => {
                 const user = response.data();
                 if (user) {
+                    restaurant.coordinates = new firebaseAdmin.firestore.GeoPoint(restaurant.coordinates.lat, restaurant.coordinates.lng);
                     restaurant.stars = {
                         star_1: 0,
                         star_2: 0,
@@ -74,7 +82,8 @@ const createRestaurant = (req, res) => {
                         star_5: 0,
                     };
 
-                    db.collection('restaurant')
+                    const GeoFirestore = geofirestore.initializeApp(db);
+                    GeoFirestore.collection('restaurants')
                         .add(restaurant)
                         .then((data) => {
                             res.status(201).json({ idRestaurant: data.id });
@@ -96,19 +105,24 @@ const createRestaurant = (req, res) => {
  * Este método actualiza un registro en Firebase de un restaurante.
  */
 const updateRestaurant = (req, res) => {
-    const newRestaurant = req.body;
-    if (!newRestaurant) {
-        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    const { id: idRestaurant } = req.params;
+    if (!idRestaurant) {
+        return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
     }
 
-    db.collection('restaurant')
-        .doc(newRestaurant.idRestaurant)
-        .set(newRestaurant)
+    const newRestaurant = req.body;
+    if (!newRestaurant) {
+        return res.status(401).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection('restaurants')
+        .doc(idRestaurant)
+        .update(newRestaurant)
         .then(response => {
             if (response) {
-                res.status(200).send({ response: "Usuario actualizado" })
+                res.status(200).send({ response: "Usuario actualizado." })
             } else {
-                res.status(401).send({ response: "Error en el proceso" })
+                res.status(401).send({ response: "Error en el proceso." })
             }
         }).catch(e => {
             res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
