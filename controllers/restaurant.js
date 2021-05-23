@@ -134,10 +134,16 @@ const updateRestaurant = (req, res) => {
  */
 const calculateOpenRestaurant = (start, end) => {
     const dateNow = new Date();
+
     const timeStart = start.split(':');
     const timeEnd = end.split(':');
     const dateStart = new Date();
     const dateEnd = new Date();
+
+    if (timeStart[0] > timeEnd[0]) {
+        dateEnd.setDate(dateEnd.getDate() + 1);
+    }
+
     dateStart.setHours(timeStart[0]);
     dateStart.setMinutes(timeStart[1]);
     dateEnd.setHours(timeEnd[0]);
