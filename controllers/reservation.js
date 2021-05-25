@@ -14,9 +14,13 @@ const getReservations = (req, res) => {
         .orderBy("timestamp", "asc")
         .get()
         .then(response => {
-            const pending = [];
-            const active = [];
-            const complete = [];
+            const dataResponse = {
+                pended: [],
+                actived: [],
+                completed: [],
+                canceled: [],
+                declined: [],
+            };
 
             Promise.all(response.docs.map(doc => {
                 const data = doc.data();
@@ -34,23 +38,12 @@ const getReservations = (req, res) => {
                             data.createdAt = new Date(data.createdAt).toLocaleString();
                             data.date = new Date(data.timestamp).toLocaleString();
 
-                            const timestamp = Date.now();
-                            if (!data.state) {
-                                if (timestamp < data.timestamp) {
-                                    pending.push(data);
-                                }
-                            } else {
-                                if (timestamp > data.timestamp) {
-                                    complete.unshift(data);
-                                } else {
-                                    active.push(data);
-                                }
-                            }
+                            dataResponse[data.type].push(data);
                         }
                     });
             }))
                 .then(() => {
-                    res.json({ pending, active, complete });
+                    res.json(dataResponse);
                 });
         })
         .catch(error => {
@@ -85,15 +78,16 @@ const createReservation = (req, res) => {
 /**
  * Elimina una reservación de la db.
  */
-const deleteReservation = (req, res) => {
+const updateReservation = (req, res) => {
     const { id: idUser } = req.params;
+    const body = req.body;
     if (!idUser) {
         return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
     }
 
     db.collection("reservation")
         .doc(idUser)
-        .delete()
+        .update({ type: body.type })
         .then(data => {
             res.json(data);
         })
@@ -105,5 +99,5 @@ const deleteReservation = (req, res) => {
 module.exports = {
     getReservations,
     createReservation,
-    deleteReservation
+    updateReservation
 }

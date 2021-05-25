@@ -26,7 +26,7 @@ router.put('/restaurant/:id', restaurantController.updateRestaurant);
  * Rutas REST para menu.
  */
 router.post('/reservation', reservationController.createReservation);
-router.delete('/reservation/:id', reservationController.deleteReservation);
+router.put('/reservation/:id', reservationController.updateReservation);
 router.get('/reservations/:id', reservationController.getReservations);
 
 /**
