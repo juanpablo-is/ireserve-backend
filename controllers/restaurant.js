@@ -130,6 +130,41 @@ const updateRestaurant = (req, res) => {
 }
 
 /**
+ * Endpoint para calificar restaurante.
+ */
+const rateRestaurant = (req, res) => {
+    const { id: idRestaurant } = req.params;
+    if (!idRestaurant) {
+        return res.status(401).json({ message: 'ID del restaurante debe ser obligatorio.' });
+    }
+
+    const { rate } = req.body;
+    if (!rate) {
+        return res.status(401).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection('restaurants')
+        .doc(idRestaurant)
+        .get()
+        .then(response => {
+            const data = response.data();
+            if (data) {
+                data.stars['star_' + rate] = ++data.stars['star_' + rate];
+                db.collection('restaurants')
+                    .doc(idRestaurant)
+                    .update(data)
+                    .then(() => {
+                        res.status(200).send({ data });
+                    });
+            } else {
+                res.status(401).send({ response: "Error en el proceso." })
+            }
+        }).catch(() => {
+            res.status(401).json({ message: `No se ha encontrado registro para este restaurante.` });
+        });
+}
+
+/**
  * Calcula si el restaurante está abierto o cerrado de acuerdo a la fecha.
  */
 const calculateOpenRestaurant = (start, end) => {
@@ -172,5 +207,6 @@ module.exports = {
     getRestaurants,
     getRestaurant,
     createRestaurant,
-    updateRestaurant
+    updateRestaurant,
+    rateRestaurant
 };

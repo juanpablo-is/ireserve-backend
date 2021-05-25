@@ -21,6 +21,7 @@ router.get('/restaurants', restaurantController.getRestaurants);
 router.get('/restaurant/:id', restaurantController.getRestaurant);
 router.post('/restaurant', restaurantController.createRestaurant);
 router.put('/restaurant/:id', restaurantController.updateRestaurant);
+router.post('/restaurant-rate/:id', restaurantController.rateRestaurant);
 
 /**
  * Rutas REST para menu.
