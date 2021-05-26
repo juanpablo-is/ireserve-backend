@@ -41,11 +41,13 @@ const createMenu = async (req, res) => {
             if (auxMenu.docs.length > 0) {
                 await db.collection('menu')
                     .doc(auxMenu.docs[0].id)
-                    .set(menu);
+                    .update(menu);
+
                 res.status(201).json({ response: `Menu actualizado.` });
             } else {
                 await db.collection('menu')
                     .add(menu);
+
                 res.status(201).json({ response: "Menu agregado." });
             }
         } catch (error) {
