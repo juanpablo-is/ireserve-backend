@@ -4,13 +4,15 @@ const db = require('../utils/database');
  * Lista las reservaciones de acuerdo al usuario.
  */
 const getReservations = (req, res) => {
-    const { id: idUser } = req.params;
-    if (!idUser) {
+    const { id } = req.params;
+    if (!id) {
         return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
     }
 
+    const { restaurant: isRestaurant } = req.query;
+
     db.collection("reservation")
-        .where("idUser", "==", idUser)
+        .where(isRestaurant ? "idRestaurant" : "idUser", "==", id)
         .orderBy("timestamp", "asc")
         .get()
         .then(response => {
@@ -87,7 +89,7 @@ const updateReservation = (req, res) => {
 
     db.collection("reservation")
         .doc(idUser)
-        .update({ type: body.type })
+        .update({ type: body.type, message: body.message })
         .then(data => {
             res.json(data);
         })
