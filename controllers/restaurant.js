@@ -191,6 +191,62 @@ const calculateOpenRestaurant = (start, end) => {
 }
 
 /**
+ * Retorna información para dashboard restaurant.
+ */
+const getDashboard = (req, res) => {
+    const { idRestaurant } = req.params;
+    if (!idRestaurant) {
+        return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
+    }
+
+    db.collection("restaurants")
+        .doc(idRestaurant)
+        .get()
+        .then(response => {
+            const restaurant = response.data();
+            if (!restaurant) { return res.json({}); }
+
+            // Domingo, Lunes, Martes, Miercoles, Jueves, Viernes, Sabado
+            const data = {
+                pended: [0, 0, 0, 0, 0, 0, 0],
+                actived: [0, 0, 0, 0, 0, 0, 0],
+                completed: [0, 0, 0, 0, 0, 0, 0]
+            };
+
+            const time = new Date();
+            const timeBefore = new Date(time.getTime() - (86400000 * 3));
+            const timeAfter = new Date(time.getTime() + (86400000 * 3));
+
+            db.collection("reservation")
+                .where("idRestaurant", "==", idRestaurant)
+                .where("timestamp", ">=", timeBefore.getTime())
+                .where("timestamp", "<=", timeAfter.getTime())
+                .orderBy("timestamp", "asc")
+                .get()
+                .then(responseReservation => {
+                    const reservations = responseReservation.docs;
+
+                    if (reservations) {
+
+                        reservations.map((item, i) => {
+                            const reservation = item.data();
+                            const date = new Date(reservation.timestamp);
+
+                            if (data[reservation.type]) {
+                                ++data[reservation.type][date.getDay()];
+                            }
+                        });
+
+                        res.json({ data });
+                    }
+                });
+        })
+        .catch(error => {
+            res.status(500).json({ response: error.message });
+        });
+}
+
+/**
  * Calcula el total y promedio de las estrellas (puntuación).
  */
 const calculateStars = (stars) => {
@@ -208,5 +264,6 @@ module.exports = {
     getRestaurant,
     createRestaurant,
     updateRestaurant,
-    rateRestaurant
+    rateRestaurant,
+    getDashboard
 };
