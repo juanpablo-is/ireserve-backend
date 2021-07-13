@@ -1,4 +1,5 @@
 const db = require('../utils/database');
+const firebase = require('firebase-admin');
 
 /**
  * Lista las reservaciones de acuerdo al usuario.
@@ -64,7 +65,7 @@ const createReservation = (req, res) => {
     }
 
     db.collection("reservation")
-        .add({ ...reservation, createdAt: Date.now() })
+        .add({ ...reservation, createdAt: Date.now(), message: [] })
         .then(response => {
             const data = response.id;
             if (data) {
@@ -87,9 +88,17 @@ const updateReservation = (req, res) => {
         return res.status(400).json({ response: "Petición no valida, revise cuerpo de la petición." });
     }
 
+    const updated = {
+        type: body.type,
+    }
+
+    if (body.newMessage) {
+        updated.message = firebase.firestore.FieldValue.arrayUnion(body.newMessage);
+    }
+
     db.collection("reservation")
         .doc(idUser)
-        .update({ type: body.type, message: body.message })
+        .update(updated)
         .then(data => {
             res.json(data);
         })
